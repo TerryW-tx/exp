@@ -1,0 +1,5 @@
+PyYAML>=6.0
+pandas>=2.0
+matplotlib>=3.7
+PuLP>=2.8
+geopy>=2.4

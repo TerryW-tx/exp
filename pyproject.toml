@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vsfc-lab"
+version = "0.1.0"
+description = "Reproducible experiment scaffold for vSFC placement/mapping in edge computing"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML>=6.0",
+  "pandas>=2.0",
+  "matplotlib>=3.7",
+  "PuLP>=2.8",
+  "geopy>=2.4",
+]
+
+[project.scripts]
+vsfc-run = "vsfc_lab.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

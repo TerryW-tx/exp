@@ -1,0 +1,17 @@
+exp_name: "vsfc_mapping"
+exp_id: ""
+output_root: "results"
+
+solver_name: "placeholder_solver"
+metrics_name: "placeholder_metrics"
+topology_name: "placeholder_topology"
+
+run_kwargs:
+  time_limit: 60
+  enable_warm_start: false
+
+plot:
+  x: "metric"
+  y: "mean"
+  yerr: "std"
+  title: "vSFC Metrics Overview"
