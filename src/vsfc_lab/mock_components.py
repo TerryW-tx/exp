@@ -402,7 +402,24 @@ class PlaceholderSolver(Solver):
 
 
 class PlaceholderMetrics(Metrics):
-    """Metrics computed from solver objective reconstruction."""
+    """Reusable baseline metrics for network experiment comparison."""
+
+    @staticmethod
+    def _path_delay(topology: Topology, path_nodes: list[int]) -> float:
+        return sum(
+            topology.get_edge_delay((u, v))
+            for u, v in zip(path_nodes[:-1], path_nodes[1:])
+        )
+
+    @staticmethod
+    def _jain_fairness(values: list[float]) -> float:
+        if not values:
+            return 0.0
+        numerator = sum(values) ** 2
+        denominator = len(values) * sum(value**2 for value in values)
+        if denominator == 0:
+            return 0.0
+        return numerator / denominator
 
     def evaluate(
         self,
@@ -480,12 +497,60 @@ class PlaceholderMetrics(Metrics):
         )
 
         objective_total = float(pulp.value(objective_expr) or 0.0)
-        avg_offloading_flow = float(sum(solution.offloading_flow for solution in solutions) / len(solutions))
+        avg_offloading_flow = float(
+            sum(solution.offloading_flow for solution in solutions) / len(solutions)
+        )
+        total_input_flow = sum(float(request.flow_size) for request in requests)
+        served_flows = [
+            max(0.0, float(request.flow_size) - solution_by_req[request.request_id].offloading_flow)
+            for request in requests
+        ]
+        throughput = float(sum(served_flows))
+        offloading_ratio = (
+            float(sum(solution.offloading_flow for solution in solutions) / total_input_flow)
+            if total_input_flow > 0
+            else 0.0
+        )
+
+        request_delays: list[float] = []
+        link_loads = {
+            (u, v) if u <= v else (v, u): 0.0
+            for u, v in undirected_edges
+        }
+        for request, served_flow in zip(requests, served_flows):
+            solution = solution_by_req[request.request_id]
+            coeffs = solver._segment_flow_coefficients(request)
+            total_delay = 0.0
+            for seg_idx in range(len(request.vnf_chain) + 1):
+                path_nodes = solution.path_mapping.get(f"segment_{seg_idx}", [])
+                segment_flow = coeffs[seg_idx] * served_flow
+                total_delay += self._path_delay(topology, path_nodes)
+                for u, v in zip(path_nodes[:-1], path_nodes[1:]):
+                    edge = (u, v) if u <= v else (v, u)
+                    if edge in link_loads:
+                        link_loads[edge] += segment_flow
+            request_delays.append(total_delay)
+
+        link_utilizations = [
+            load / topology.get_edge_capacity(edge)
+            for edge, load in link_loads.items()
+            if topology.get_edge_capacity(edge) > 0
+        ]
 
         return {
             "objective_total": objective_total,
             "avg_offloading_flow": avg_offloading_flow,
             "n_solutions": float(len(solutions)),
+            "throughput": throughput,
+            "offloading_ratio": offloading_ratio,
+            "avg_end_to_end_delay_ms": (
+                float(sum(request_delays) / len(request_delays)) if request_delays else 0.0
+            ),
+            "avg_link_utilization": (
+                float(sum(link_utilizations) / len(link_utilizations)) if link_utilizations else 0.0
+            ),
+            "max_link_utilization": float(max(link_utilizations)) if link_utilizations else 0.0,
+            "jain_fairness": float(self._jain_fairness(served_flows)),
         }
 
 
