@@ -502,10 +502,8 @@ class PlaceholderMetrics(Metrics):
         )
 
         objective_total = float(pulp.value(objective_expr) or 0.0)
-        total_offloading_flow = sum(solution.offloading_flow for solution in solutions)
-        avg_offloading_flow = float(
-            total_offloading_flow / len(solutions)
-        )
+        total_offloading_flow = float(sum(solution.offloading_flow for solution in solutions))
+        avg_offloading_flow = total_offloading_flow / len(solutions)
         total_input_flow = sum(float(request.flow_size) for request in requests)
         served_flows = [
             max(0.0, float(request.flow_size) - solution_by_req[request.request_id].offloading_flow)
@@ -513,7 +511,7 @@ class PlaceholderMetrics(Metrics):
         ]
         throughput = float(sum(served_flows))
         offloading_ratio = (
-            float(total_offloading_flow / total_input_flow)
+            total_offloading_flow / total_input_flow
             if total_input_flow > 0
             else 0.0
         )
