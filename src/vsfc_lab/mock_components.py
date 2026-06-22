@@ -138,9 +138,6 @@ class PlaceholderSolver(Solver):
             coeffs.append(acc)
         return coeffs
 
-    def _segment_flow_coefficients(self, request: SFCRequest) -> list[float]:
-        return self.segment_flow_coefficients(request)
-
     def _build_total_objective(
         self,
         topology: Topology,

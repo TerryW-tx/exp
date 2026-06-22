@@ -64,7 +64,7 @@ vsfc-lab/
 - 画图逻辑：`scripts/plot.py` 从 `summary.csv` 读取指标并输出图片。
 - 场景复现：`scripts/make_scenario.py` 可生成固定随机种子的 topology/request JSON，CLI 可用 `--scenario-config` 复用场景。
 
-## 算法过程提供后再实现
+## 接收算法后的实现流程
 
 在收到具体算法过程后，修改代码前应先复述：
 
