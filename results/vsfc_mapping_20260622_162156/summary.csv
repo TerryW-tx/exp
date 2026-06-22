@@ -1,0 +1,4 @@
+metric,mean,std,n_runs
+avg_offloading_flow,0.0,0.0,1
+n_solutions,1.0,0.0,1
+objective_total,89.34,0.0,1

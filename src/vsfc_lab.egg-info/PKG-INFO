@@ -31,6 +31,7 @@ source .venv/bin/activate
 pip install -e .
 python -m vsfc_lab.cli --config configs/base.yaml --seeds 0 1 2
 python scripts/plot.py --summary-csv results/<exp_id>/summary.csv --output results/<exp_id>/fig_overview.png
+python scripts/make_scenario.py --output-dir results/scenarios --seeds 0 1 2 --max-nodes 10
 ```
 
 ## 目录结构
@@ -41,6 +42,7 @@ vsfc-lab/
     base.yaml
   scripts/
     plot.py
+    make_scenario.py
   src/vsfc_lab/
     cli.py
     config.py
