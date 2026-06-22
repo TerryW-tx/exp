@@ -44,7 +44,7 @@ class NetworkMetricsTest(unittest.TestCase):
             path_mapping={"segment_0": [0, 1], "segment_1": [1]},
         )
 
-        metrics = PlaceholderMetrics().evaluate(topology, [request], [solution])
+        metrics = create_metrics("network_metrics").evaluate(topology, [request], [solution])
 
         self.assertEqual(metrics["throughput"], 8.0)
         self.assertEqual(metrics["offloading_ratio"], 0.2)

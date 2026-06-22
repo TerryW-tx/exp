@@ -14,7 +14,7 @@
 ## 快速开始
 
 ```bash
-cd exp
+cd <project-directory>
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
