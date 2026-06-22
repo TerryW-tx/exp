@@ -512,7 +512,7 @@ class PlaceholderMetrics(Metrics):
             else 0.0
         )
 
-        request_delays: list[float] = []
+        end_to_end_delays: list[float] = []
         link_loads = {
             (u, v) if u <= v else (v, u): 0.0
             for u, v in undirected_edges
@@ -529,7 +529,7 @@ class PlaceholderMetrics(Metrics):
                     edge = (u, v) if u <= v else (v, u)
                     if edge in link_loads:
                         link_loads[edge] += segment_flow
-            request_delays.append(total_delay)
+            end_to_end_delays.append(total_delay)
 
         link_utilizations = [
             load / topology.get_edge_capacity(edge)
@@ -544,7 +544,9 @@ class PlaceholderMetrics(Metrics):
             "throughput": throughput,
             "offloading_ratio": offloading_ratio,
             "avg_end_to_end_delay_ms": (
-                float(sum(request_delays) / len(request_delays)) if request_delays else 0.0
+                float(sum(end_to_end_delays) / len(end_to_end_delays))
+                if end_to_end_delays
+                else 0.0
             ),
             "avg_link_utilization": (
                 float(sum(link_utilizations) / len(link_utilizations)) if link_utilizations else 0.0
