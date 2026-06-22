@@ -402,7 +402,21 @@ class PlaceholderSolver(Solver):
 
 
 class PlaceholderMetrics(Metrics):
-    """Metrics computed from solver objective reconstruction."""
+    """Metrics computed from solver objective reconstruction and network KPIs."""
+
+    @staticmethod
+    def _canonical_edge(edge: tuple[int, int]) -> tuple[int, int]:
+        return edge if edge[0] <= edge[1] else (edge[1], edge[0])
+
+    @staticmethod
+    def _jain_fairness(values: list[float]) -> float:
+        if not values:
+            return 0.0
+        squared_sum = sum(values) ** 2
+        sum_of_squares = sum(value**2 for value in values)
+        if sum_of_squares == 0:
+            return 1.0
+        return squared_sum / (len(values) * sum_of_squares)
 
     def evaluate(
         self,
@@ -481,11 +495,55 @@ class PlaceholderMetrics(Metrics):
 
         objective_total = float(pulp.value(objective_expr) or 0.0)
         avg_offloading_flow = float(sum(solution.offloading_flow for solution in solutions) / len(solutions))
+        total_input_flow = sum(request.flow_size for request in requests)
+        processed_flows = [
+            max(0.0, request.flow_size - solution_by_req[request.request_id].offloading_flow)
+            for request in requests
+        ]
+        throughput = sum(processed_flows)
+        packet_loss_rate = (
+            max(0.0, total_input_flow - throughput) / total_input_flow if total_input_flow > 0 else 0.0
+        )
+
+        edge_loads = {edge: 0.0 for edge in undirected_edges}
+        request_delays: list[float] = []
+        for request, processed_flow in zip(requests, processed_flows, strict=True):
+            solution = solution_by_req[request.request_id]
+            coeffs = solver._segment_flow_coefficients(request)
+            request_delay = 0.0
+            for seg_idx in range(len(request.vnf_chain) + 1):
+                segment_flow = coeffs[seg_idx] * processed_flow
+                path_nodes = solution.path_mapping.get(f"segment_{seg_idx}", [])
+                for edge in zip(path_nodes[:-1], path_nodes[1:], strict=True):
+                    canonical_edge = self._canonical_edge(edge)
+                    edge_loads[canonical_edge] = edge_loads.get(canonical_edge, 0.0) + segment_flow
+                    request_delay += topology.get_edge_delay(canonical_edge)
+            request_delays.append(request_delay)
+
+        link_utilizations = [
+            load / capacity
+            for edge, load in edge_loads.items()
+            if (capacity := topology.get_edge_capacity(edge)) > 0
+        ]
+        avg_link_utilization = (
+            sum(link_utilizations) / len(link_utilizations) if link_utilizations else 0.0
+        )
+        max_link_utilization = max(link_utilizations, default=0.0)
+        avg_end_to_end_delay_ms = (
+            sum(request_delays) / len(request_delays) if request_delays else 0.0
+        )
+        fairness_index = self._jain_fairness(processed_flows)
 
         return {
             "objective_total": objective_total,
             "avg_offloading_flow": avg_offloading_flow,
             "n_solutions": float(len(solutions)),
+            "throughput": throughput,
+            "avg_end_to_end_delay_ms": avg_end_to_end_delay_ms,
+            "packet_loss_rate": packet_loss_rate,
+            "avg_link_utilization": avg_link_utilization,
+            "max_link_utilization": max_link_utilization,
+            "fairness_index": fairness_index,
         }
 
 

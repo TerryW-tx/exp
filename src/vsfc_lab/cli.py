@@ -18,6 +18,16 @@ from .mock_components import (
 )
 from .runner import ExperimentRunner
 
+SOLVER_REGISTRY = {
+    "placeholder_solver": PlaceholderSolver,
+    "milp_baseline": PlaceholderSolver,
+}
+
+METRICS_REGISTRY = {
+    "placeholder_metrics": PlaceholderMetrics,
+    "network_metrics": PlaceholderMetrics,
+}
+
 
 def _parse_kv_overrides(pairs: list[str]) -> dict[str, Any]:
     overrides: dict[str, Any] = {}
@@ -47,6 +57,14 @@ def _apply_overrides(raw_cfg: dict[str, Any], overrides: dict[str, Any]) -> dict
             cursor = cursor[part]
         cursor[parts[-1]] = value
     return updated
+
+
+def _build_component(name: str, registry: dict[str, type]) -> Any:
+    try:
+        return registry[name]()
+    except KeyError as exc:
+        available = ", ".join(sorted(registry))
+        raise ValueError(f"Unknown component '{name}'. Available: {available}") from exc
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -92,8 +110,8 @@ def main() -> None:
 
     if args.save_scenario_config is not None:
         save_scenario_config(args.save_scenario_config, topology, requests)
-    solver = PlaceholderSolver()
-    metrics = PlaceholderMetrics()
+    solver = _build_component(config.solver_name, SOLVER_REGISTRY)
+    metrics = _build_component(config.metrics_name, METRICS_REGISTRY)
 
     runner = ExperimentRunner(
         config=config,
@@ -112,6 +130,8 @@ def main() -> None:
         ),
         "merged_config": merged_cfg,
         "parsed_config": asdict(config),
+        "available_solvers": sorted(SOLVER_REGISTRY),
+        "available_metrics": sorted(METRICS_REGISTRY),
     }
     result_dir = runner.run(seeds=args.seeds, config_snapshot=config_snapshot)
     print(f"Experiment completed. Results in: {result_dir}")

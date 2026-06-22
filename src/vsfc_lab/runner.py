@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import random
 import statistics
+import time
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -57,17 +59,21 @@ class ExperimentRunner:
                 "error": None,
             }
             try:
+                random.seed(seed)
+                started_at = time.perf_counter()
                 solutions: list[PlacementSolution] = self.solver.solve(
                     topology=self.topology,
                     requests=self.requests,
                     seed=seed,
                     **self.config.run_kwargs,
                 )
+                solve_runtime = time.perf_counter() - started_at
                 metric_values = self.metrics.evaluate(
                     topology=self.topology,
                     requests=self.requests,
                     solutions=solutions,
                 )
+                metric_values["algorithm_runtime_seconds"] = solve_runtime
                 run_payload["metrics"] = metric_values
                 per_run_metrics.append(metric_values)
                 run_payload["solutions"] = [asdict(solution) for solution in solutions]

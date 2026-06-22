@@ -2,8 +2,8 @@ exp_name: "vsfc_mapping"
 exp_id: ""
 output_root: "results"
 
-solver_name: "placeholder_solver"
-metrics_name: "placeholder_metrics"
+solver_name: "milp_baseline"
+metrics_name: "network_metrics"
 topology_name: "placeholder_topology"
 
 run_kwargs:
