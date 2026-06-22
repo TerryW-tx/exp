@@ -503,7 +503,10 @@ def build_solver(name: str) -> Solver:
         solver_cls = SOLVER_REGISTRY[name]
     except KeyError as exc:
         available = ", ".join(sorted(SOLVER_REGISTRY))
-        raise ValueError(f"Unknown solver_name '{name}'. Available solvers: {available}") from exc
+        raise ValueError(
+            f"Unknown solver_name '{name}'. Available solvers: {available}. "
+            "Configure solver_name in your experiment config file."
+        ) from exc
     return solver_cls()
 
 
@@ -512,7 +515,10 @@ def build_metrics(name: str) -> Metrics:
         metrics_cls = METRICS_REGISTRY[name]
     except KeyError as exc:
         available = ", ".join(sorted(METRICS_REGISTRY))
-        raise ValueError(f"Unknown metrics_name '{name}'. Available metrics: {available}") from exc
+        raise ValueError(
+            f"Unknown metrics_name '{name}'. Available metrics: {available}. "
+            "Configure metrics_name in your experiment config file."
+        ) from exc
     return metrics_cls()
 
 
