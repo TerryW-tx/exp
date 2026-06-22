@@ -516,8 +516,7 @@ class PlaceholderMetrics(Metrics):
         for request, processed_flow in zip(requests, processed_flows, strict=True):
             solution = solution_by_req[request.request_id]
             coeffs = solver.segment_flow_coefficients(request)
-            processing_delay = DEFAULT_VNF_PROCESSING_DELAY_MS
-            request_delay = processing_delay
+            request_delay = DEFAULT_VNF_PROCESSING_DELAY_MS
             for seg_idx in range(len(request.vnf_chain) + 1):
                 segment_flow = coeffs[seg_idx] * processed_flow
                 path_nodes = solution.path_mapping.get(f"segment_{seg_idx}", [])
