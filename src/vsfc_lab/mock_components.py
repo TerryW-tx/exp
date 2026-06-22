@@ -405,6 +405,11 @@ class PlaceholderMetrics(Metrics):
     """Reusable baseline metrics for network experiment comparison."""
 
     @staticmethod
+    def _normalize_edge(edge: tuple[int, int]) -> tuple[int, int]:
+        u, v = edge
+        return (u, v) if u <= v else (v, u)
+
+    @staticmethod
     def _path_delay(topology: Topology, path_nodes: list[int]) -> float:
         return sum(
             topology.get_edge_delay((u, v))
@@ -514,8 +519,8 @@ class PlaceholderMetrics(Metrics):
 
         end_to_end_delays: list[float] = []
         link_loads = {
-            (u, v) if u <= v else (v, u): 0.0
-            for u, v in undirected_edges
+            self._normalize_edge(edge): 0.0
+            for edge in undirected_edges
         }
         for request, served_flow in zip(requests, served_flows):
             solution = solution_by_req[request.request_id]
@@ -526,7 +531,7 @@ class PlaceholderMetrics(Metrics):
                 segment_flow = coeffs[seg_idx] * served_flow
                 total_delay += self._path_delay(topology, path_nodes)
                 for u, v in zip(path_nodes[:-1], path_nodes[1:]):
-                    edge = (u, v) if u <= v else (v, u)
+                    edge = self._normalize_edge((u, v))
                     if edge in link_loads:
                         link_loads[edge] += segment_flow
             end_to_end_delays.append(total_delay)

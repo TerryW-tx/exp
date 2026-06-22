@@ -14,7 +14,7 @@
 ## 快速开始
 
 ```bash
-cd /path/to/vsfc-lab
+cd ~/projects/vsfc-lab
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
