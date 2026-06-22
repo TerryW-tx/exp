@@ -13,6 +13,9 @@ from geopy.distance import geodesic
 from .interfaces import Metrics, Solver, Topology
 from .models import FIXED_VNF_INSTANCES, PlacementSolution, SFCRequest, VNFInstance
 
+# VNFInstance currently has no processing-delay field, so metrics default it to zero.
+DEFAULT_VNF_PROCESSING_DELAY_MS = 0.0
+
 
 @dataclass(slots=True)
 class MockTopology(Topology):
@@ -513,7 +516,7 @@ class PlaceholderMetrics(Metrics):
         for request, processed_flow in zip(requests, processed_flows, strict=True):
             solution = solution_by_req[request.request_id]
             coeffs = solver.segment_flow_coefficients(request)
-            processing_delay = 0.0  # Current delay model excludes VNF processing delay.
+            processing_delay = DEFAULT_VNF_PROCESSING_DELAY_MS
             request_delay = processing_delay
             for seg_idx in range(len(request.vnf_chain) + 1):
                 segment_flow = coeffs[seg_idx] * processed_flow

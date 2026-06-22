@@ -68,7 +68,7 @@ vsfc-lab/
 2. 输入：拓扑、链路容量/时延、SFC 请求、VNF 资源需求、随机种子和算法参数。
 3. 输出：`PlacementSolution` 列表，包括 VNF 到节点的映射、路径、卸载/未服务流量和元数据。
 4. 核心步骤：初始化、候选选择、约束检查、迭代/收敛条件、结果生成。
-5. 可能歧义：不可行请求如何处理、卸载是否等价丢包、时延模型（当前仅统计链路传播时延，不含 VNF 处理时延）、链路方向、是否允许共享节点等。
+5. 可能歧义：不可行请求如何处理、卸载是否等价丢包、时延模型（当前仅统计链路传播时延 link propagation delay，不含 VNF 处理时延 VNF processing delay）、链路方向、是否允许共享节点等。
 
 接入时在 `src/vsfc_lab/mock_components.py` 或新模块中实现 `Solver.solve(...)`，再在 `src/vsfc_lab/cli.py` 的 `SOLVER_REGISTRY` 注册名称，即可通过配置选择：
 
@@ -93,8 +93,8 @@ python -m vsfc_lab.cli --config configs/base.yaml --seeds 0 1 2 --set solver_nam
 - `results/<exp_id>/summary.csv`：跨 seed 的均值、标准差和样本数。
 - `results/<exp_id>/run.log`：运行日志。
 
-运行器会在每次调用算法前执行 `random.seed(seed)`，并把同一 seed 通过 `Solver.solve(..., seed=seed)` 传入；如新增算法需要隔离随机性，建议在算法内部基于该 seed 创建局部随机数生成器。
-当前时延指标与代码实现保持一致：只累计链路传播时延，VNF 处理时延暂按 0 处理，后续可在指标实现中扩展。
+运行器会为每个 seed 创建局部 `random.Random(seed)`，并通过 `Solver.solve(..., seed=seed, rng=rng)` 传入；如新增算法需要随机性，建议优先复用该局部随机数生成器。
+当前时延指标与代码实现保持一致：只累计链路传播时延（link propagation delay），VNF 处理时延（VNF processing delay）默认按 0 ms 处理，后续可在指标实现中扩展。
 
 ## 论文结果分析模板
 可按以下结构撰写实验分析：

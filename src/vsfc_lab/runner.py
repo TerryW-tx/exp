@@ -59,12 +59,13 @@ class ExperimentRunner:
                 "error": None,
             }
             try:
-                random.seed(seed)
+                rng = random.Random(seed)
                 started_at = time.perf_counter()
                 solutions: list[PlacementSolution] = self.solver.solve(
                     topology=self.topology,
                     requests=self.requests,
                     seed=seed,
+                    rng=rng,
                     **self.config.run_kwargs,
                 )
                 solve_runtime = time.perf_counter() - started_at
