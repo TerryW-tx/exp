@@ -130,13 +130,16 @@ def build_mock_topology(
 class PlaceholderSolver(Solver):
     """MILP-based global solver baseline for vSFC placement/mapping."""
 
-    def _segment_flow_coefficients(self, request: SFCRequest) -> list[float]:
+    def segment_flow_coefficients(self, request: SFCRequest) -> list[float]:
         coeffs = [1.0]
         acc = 1.0
         for vnf in request.vnf_chain:
             acc *= vnf.flow_scaling_factor
             coeffs.append(acc)
         return coeffs
+
+    def _segment_flow_coefficients(self, request: SFCRequest) -> list[float]:
+        return self.segment_flow_coefficients(request)
 
     def _build_total_objective(
         self,
@@ -275,7 +278,7 @@ class PlaceholderSolver(Solver):
             )
 
         for r_idx, request in enumerate(requests):
-            coeffs = self._segment_flow_coefficients(request)
+            coeffs = self.segment_flow_coefficients(request)
             for seg_idx in range(len(request.vnf_chain) + 1):
                 flow_expr = coeffs[seg_idx] * (request.flow_size - offloading_flow[r_idx])
                 max_flow = coeffs[seg_idx] * request.flow_size
@@ -468,7 +471,7 @@ class PlaceholderMetrics(Metrics):
                     )
                     x[(r_idx, v_idx, node_id)].varValue = 1.0 if node_id == assigned_node else 0.0
 
-            coeffs = solver._segment_flow_coefficients(request)
+            coeffs = solver.segment_flow_coefficients(request)
             for seg_idx in range(len(request.vnf_chain) + 1):
                 segment_flow = coeffs[seg_idx] * (request.flow_size - solution.offloading_flow)
                 path_nodes = solution.path_mapping.get(f"segment_{seg_idx}", [])
@@ -509,7 +512,8 @@ class PlaceholderMetrics(Metrics):
         request_delays: list[float] = []
         for request, processed_flow in zip(requests, processed_flows, strict=True):
             solution = solution_by_req[request.request_id]
-            coeffs = solver._segment_flow_coefficients(request)
+            coeffs = solver.segment_flow_coefficients(request)
+            # Current request/VNF data models do not include processing delay.
             request_delay = 0.0
             for seg_idx in range(len(request.vnf_chain) + 1):
                 segment_flow = coeffs[seg_idx] * processed_flow

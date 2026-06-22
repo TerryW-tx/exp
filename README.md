@@ -13,7 +13,7 @@
 ## 快速开始
 
 ```bash
-cd /home/runner/work/exp/exp
+cd /path/to/exp
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
