@@ -492,13 +492,20 @@ class PlaceholderMetrics(Metrics):
 SOLVER_REGISTRY: dict[str, type[Solver]] = {
     "placeholder_solver": PlaceholderSolver,
 }
+"""Map config solver_name values to Solver implementations."""
 
 METRICS_REGISTRY: dict[str, type[Metrics]] = {
     "placeholder_metrics": PlaceholderMetrics,
 }
+"""Map config metrics_name values to Metrics implementations."""
 
 
 def build_solver(name: str) -> Solver:
+    """Instantiate a registered solver by config name.
+
+    Raises:
+        ValueError: If `name` is not present in `SOLVER_REGISTRY`.
+    """
     try:
         solver_cls = SOLVER_REGISTRY[name]
     except KeyError as exc:
@@ -511,6 +518,11 @@ def build_solver(name: str) -> Solver:
 
 
 def build_metrics(name: str) -> Metrics:
+    """Instantiate a registered metrics evaluator by config name.
+
+    Raises:
+        ValueError: If `name` is not present in `METRICS_REGISTRY`.
+    """
     try:
         metrics_cls = METRICS_REGISTRY[name]
     except KeyError as exc:
