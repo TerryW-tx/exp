@@ -93,6 +93,9 @@ python -m vsfc_lab.cli --config configs/base.yaml --seeds 0 1 2 --set solver_nam
 - `results/<exp_id>/summary.csv`：跨 seed 的均值、标准差和样本数。
 - `results/<exp_id>/run.log`：运行日志。
 
+运行器会在每次调用算法前执行 `random.seed(seed)`，并把同一 seed 通过 `Solver.solve(..., seed=seed)` 传入；如新增算法需要隔离随机性，建议在算法内部基于该 seed 创建局部随机数生成器。
+当前时延指标与代码实现保持一致：只累计链路传播时延，VNF 处理时延暂按 0 处理，后续可在指标实现中扩展。
+
 ## 论文结果分析模板
 可按以下结构撰写实验分析：
 1. 实验设置：说明拓扑来源、请求规模、VNF 链、随机种子、硬件环境和关键参数。
