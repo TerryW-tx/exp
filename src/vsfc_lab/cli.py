@@ -9,13 +9,13 @@ import yaml
 
 from .config import load_yaml_config, parse_config
 from .mock_components import (
-    build_metrics,
     build_mock_topology,
     build_mock_requests,
     build_solver,
     load_scenario_config,
     save_scenario_config,
 )
+from .registry import create_metrics, create_solver
 from .runner import ExperimentRunner
 
 
@@ -92,8 +92,8 @@ def main() -> None:
 
     if args.save_scenario_config is not None:
         save_scenario_config(args.save_scenario_config, topology, requests)
-    solver = build_solver(config.solver_name)
-    metrics = build_metrics(config.metrics_name)
+    solver = create_solver(config.solver_name)
+    metrics = create_metrics(config.metrics_name)
 
     runner = ExperimentRunner(
         config=config,

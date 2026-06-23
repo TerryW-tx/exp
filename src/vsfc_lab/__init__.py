@@ -6,4 +6,5 @@ __all__ = [
     "config",
     "runner",
     "io",
+    "registry",
 ]
