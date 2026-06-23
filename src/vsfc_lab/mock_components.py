@@ -560,6 +560,51 @@ class PlaceholderMetrics(Metrics):
         }
 
 
+SOLVER_REGISTRY: dict[str, type[Solver]] = {
+    "placeholder_solver": PlaceholderSolver,
+}
+"""Map config solver_name values to Solver implementations."""
+
+METRICS_REGISTRY: dict[str, type[Metrics]] = {
+    "placeholder_metrics": PlaceholderMetrics,
+}
+"""Map config metrics_name values to Metrics implementations."""
+
+
+def build_solver(name: str) -> Solver:
+    """Instantiate a registered solver by config name.
+
+    Raises:
+        ValueError: If `name` is not present in `SOLVER_REGISTRY`.
+    """
+    try:
+        solver_cls = SOLVER_REGISTRY[name]
+    except KeyError as exc:
+        available = ", ".join(sorted(SOLVER_REGISTRY))
+        raise ValueError(
+            f"Unknown solver_name '{name}'. Available solvers: {available}. "
+            "Configure solver_name in your experiment config file."
+        ) from exc
+    return solver_cls()
+
+
+def build_metrics(name: str) -> Metrics:
+    """Instantiate a registered metrics evaluator by config name.
+
+    Raises:
+        ValueError: If `name` is not present in `METRICS_REGISTRY`.
+    """
+    try:
+        metrics_cls = METRICS_REGISTRY[name]
+    except KeyError as exc:
+        available = ", ".join(sorted(METRICS_REGISTRY))
+        raise ValueError(
+            f"Unknown metrics_name '{name}'. Available metrics: {available}. "
+            "Configure metrics_name in your experiment config file."
+        ) from exc
+    return metrics_cls()
+
+
 def build_mock_requests(node_ids: list[int] | None = None) -> list[SFCRequest]:
     """Return small dummy requests for pipeline smoke test.
 

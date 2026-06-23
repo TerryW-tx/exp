@@ -11,6 +11,7 @@ from .config import load_yaml_config, parse_config
 from .mock_components import (
     build_mock_topology,
     build_mock_requests,
+    build_solver,
     load_scenario_config,
     save_scenario_config,
 )
